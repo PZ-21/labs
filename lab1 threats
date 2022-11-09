@@ -1,0 +1,75 @@
+#include <thread>
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <omp.h> 
+
+using namespace std;
+
+const double e = 0.01;
+const int n = 500;
+
+void threadfunction(int a, int b, int** A, int* x, int* xnew)
+{
+	for (int i = a; i < b; i++) {
+		xnew[i] = 0;
+		for (int j = 0;j < n;j++) {
+			xnew[i] += A[i][j] * x[j];
+			//std::cout << xnew[i];
+		}
+	}
+}
+int main()
+{
+
+	int ** A;
+	A=new int* [n];
+	for (int i=0; i<n; i++)
+	A[i]=new int [n];
+	
+	int x[n];
+	int xnew[n];
+	srand(time(0));
+	for (int i = 0; i < n; i++) {
+		x[i] = 1;
+		for (int j = 0; j < n; j++) {
+			A[i][j] = 1 + rand() % 100;
+			if ( i == j) {
+			    A[i][j] = 50000; 
+			}
+		}
+	}
+	//X = Ax;
+	int w = 0, h = 0, a=0, b=0;
+	unsigned int start_time = clock();
+	while (w < 10000) {
+	    thread* th[n];
+        for (int k = 1; k < 4; k++){
+            th[k] = new thread (threadfunction, a, b, A, x, xnew);
+            a = a + 125;
+            b = b + 125;
+        }
+        for (int k = 1; k < 4; k++){
+            th[k]->join();
+        }
+           h=0;
+	       for (int i = 0; i < n; i++) {
+	           if (abs(xnew[i] - x[i]) >= e)
+	           h++;
+	       }
+	       for (int i = 0; i < n; i++) {
+	           x[i] = xnew[i];
+	       }
+	       if (h==0) {
+	           std::cout << " Достигнута искомая точность решения";
+	           break;
+	       }
+	       w++;
+	   }
+	   
+	unsigned int end_time = clock();
+	unsigned int search_time = end_time - start_time;
+	std::cout << "\n time = " << search_time << endl;
+
+	return 0;
+}
