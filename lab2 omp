@@ -1,0 +1,72 @@
+#include <thread>
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <omp.h> 
+
+using namespace std;
+
+const double e = 0.01;
+const int n = 500;
+
+void threadfunction(int a, int b, double** A, double* x, double* xnew)
+{
+	for (int i = a; i < b; i++) {
+		xnew[i] = 0;
+		for (int j = 0;j < n;j++) {
+			xnew[i] += A[i][j] * x[j];
+			//std::cout << xnew[i];
+		}
+	}
+}
+int main()
+{
+
+	double ** A;
+	A=new double* [n];
+	for (int i=0; i<n; i++)
+	A[i]=new double [n];
+	
+	double x[n];
+	double xnew[n];
+	srand(time(0));
+	for (int i = 0; i < n; i++) {
+		x[i] = 1;
+		for (int j = 0; j < n; j++) {
+			A[i][j] = 1 + rand() % 100;
+			if ( i == j) {
+			    A[i][j] = 50000; 
+			}
+		}
+	}
+	//X = Ax;
+	int w = 0, h = 0;
+	while (w < 10000) {
+	    #pragma omp parallel num_threads(4)
+	    {
+	        int p = omp_get_thread_num();
+	            double start = omp_get_wtime();
+	            int a = 125*p;
+	            int b = 125*(p+1);
+	            threadfunction(a, b, A, x, xnew);
+	            double end = omp_get_wtime();
+	            std::cout << " number of thread " << p << " time " << end-start << endl;
+        }
+           h=0;
+	       for (int i = 0; i < n; i++) {
+	           if (abs(xnew[i] - x[i]) >= e)
+	           h++;
+	       }
+	       for (int i = 0; i < n; i++) {
+	           x[i] = xnew[i];
+	       }
+	       if (h==0) {
+	           std::cout << " Достигнута искомая точность решения";
+	           break;
+	       }
+	       w++;
+	   }
+	   
+
+	return 0;
+}
