@@ -7,28 +7,27 @@
 using namespace std;
 
 const double e = 0.01;
-const int n = 500;
+const int n = 4;
 
-void threadfunction(int a, int b, int** A, int* x, int* xnew)
+void threadfunction(int a, int b, double** A, double* x, double* xnew)
 {
 	for (int i = a; i < b; i++) {
-		xnew[i] = 0;
+		xnew[i] = x[i];
 		for (int j = 0;j < n;j++) {
 			xnew[i] += A[i][j] * x[j];
-			//std::cout << xnew[i];
 		}
 	}
 }
 int main()
 {
 
-	int ** A;
-	A=new int* [n];
+	double ** A;
+	A=new double* [n];
 	for (int i=0; i<n; i++)
-	A[i]=new int [n];
+	A[i]=new double [n];
 	
-	int x[n];
-	int xnew[n];
+	double x[n];
+	double xnew[n];
 	srand(time(0));
 	for (int i = 0; i < n; i++) {
 		x[i] = 1;
@@ -39,7 +38,7 @@ int main()
 			}
 		}
 	}
-	//X = Ax;
+	
 	int w = 0, h = 0, a=0, b=0;
 	unsigned int start_time = clock();
 	while (w < 10000) {
@@ -61,11 +60,14 @@ int main()
 	           x[i] = xnew[i];
 	       }
 	       if (h==0) {
-	           std::cout << " Достигнута искомая точность решения";
+	           std::cout << " Достигнута искомая точность решения ";
 	           break;
 	       }
 	       w++;
 	   }
+	   
+	   for (int i = 0; i < n; i++)
+	    cout<<xnew[i]<<" ";
 	   
 	unsigned int end_time = clock();
 	unsigned int search_time = end_time - start_time;
