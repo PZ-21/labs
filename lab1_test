@@ -2,99 +2,100 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include <omp.h> 
+#include <omp.h>
 
 using namespace std;
 
-const double e = 0.01;
+const double e = 0.0001;
 const int n = 4;
 
 void threadfunction(int a, int b, double** A, double* x, double* xnew, double* f)
 {
-	for (int i = a; i < b; i++) {
-		xnew[i] = f[i];
-		for (int j = 0;j < n;j++) {
-			xnew[i] += A[i][j] * x[j];
-			//std::cout << xnew[i];
-		}
-	}
+    for (int i = a; i < b; i++) {
+        xnew[i] = f[i];
+        for (int j = 0;j < n;j++) {
+            xnew[i] += A[i][j] * x[j];
+            //std::cout << xnew[i];
+        }
+    }
 }
 int main()
 {
 
-	double ** A;
-	A=new double* [n];
-	for (int i=0; i<n; i++)
-	A[i]=new double [n];
-	
-	double f[n];
-	A = new double* [n];
-	for (int i = 0; i < n; i++)
-		A[i] = new double[n];
-		
-	double x[n];
-	double xnew[n];
-	srand(time(0));
+    double ** A;
+    A=new double* [n];
+    for (int i=0; i<n; i++)
+    A[i]=new double [n];
 
-	A[0][0]=0;
-	A[0][1]=-0.2;
-	A[0][2]=0.1;
-	A[0][3]=0;
-	A[1][0]=-0.33;
-	A[1][1]=0;
-	A[1][2]=-0.17;
-	A[1][3]=0;
-	A[2][0]=-0.0833;
-	A[2][1]=0.25;
-	A[2][2]=0;
-	A[2][3]=1;
-	A[3][0]=0;
-	A[3][1]=0;
-	A[3][2]=0;
-	A[3][3]=1;
-	f[0]=0.5;
-	f[1]=-4.07;
-	f[2]=3;
-	f[3]=0;
+    double f[n];
+    A = new double* [n];
+    for (int i = 0; i < n; i++)
+        A[i] = new double[n];
+
+    double x[n];
+    double xnew[n];
+    srand(time(0));
+
+    A[0][0]=0;
+    A[0][1]=-0.2;
+    A[0][2]=0.1;
+    A[0][3]=0;
+    A[1][0]=-0.33;
+    A[1][1]=0;
+    A[1][2]=-0.17;
+    A[1][3]=0;
+    A[2][0]=-0.0833;
+    A[2][1]=0.25;
+    A[2][2]=0;
+    A[2][3]=1;
+    A[3][0]=0;
+    A[3][1]=0;
+    A[3][2]=0;
+    A[3][3]=1;
+    f[0]=0.5;
+    f[1]=-4.07;
+    f[2]=3;
+    f[3]=0;
 //x1=1.64, x2=-4.89, x3=1.64, x4=0
-	for (int i = 0; i < n; i++) {
-		x[i] = f[i];
-	}
-		
-	//X = Ax;
-	int w = 0, h = 0, a=0, b=0;
-	unsigned int start_time = clock();
-	while (w < 10000) {
-	    thread* th[n];
-        for (int k = 1; k < 4; k++){
+    for (int i = 0; i < n; i++) {
+        x[i] = f[i];
+    }
+
+    //X = Ax;
+    int w = 0, h = 0, a, b;
+    unsigned int start_time = clock();
+    while (w < 10000) {
+        thread* th[n];
+        a=0, b=1;
+        for (int k = 0; k < n; k++){
             th[k] = new thread (threadfunction, a, b, A, x, xnew, f);
-            a = a + 125;
-            b = b + 125;
+            a = a + 1;
+            b = b + 1;
         }
-        for (int k = 1; k < 4; k++){
+        for (int k = 0; k < n; k++){
             th[k]->join();
         }
            h=0;
-	       for (int i = 0; i < n; i++) {
-	           if (abs(xnew[i] - x[i]) >= e)
-	           h++;
-	       }
-	       for (int i = 0; i < n; i++) {
-	           x[i] = xnew[i];
-	       }
-	       if (h==0) {
-	           std::cout << " Достигнута искомая точность решения";
-	           break;
-	       }
-	       w++;
-	   }
-	   
-	   for (int i = 0; i < n; i++)
-	    cout<<xnew[i]<<" ";
-	   
-	unsigned int end_time = clock();
-	unsigned int search_time = end_time - start_time;
-	std::cout << "\n time = " << search_time << endl;
+           for (int i = 0; i < n; i++) {
+               if (abs(xnew[i] - x[i]) >= e)
+               h++;
+           }
+           for (int i = 0; i < n; i++) {
+               x[i] = xnew[i];
+           }
+           if (h==0) {
+               std::cout << " Достигнута искомая точность решения";
+               break;
+           }
+           w++;
+       }
 
-	return 0;
+       for (int i = 0; i < n; i++)
+        cout<<xnew[i]<<" ";
+
+    unsigned int end_time = clock();
+    unsigned int search_time = end_time - start_time;
+    std::cout << "\n time = " << search_time << endl;
+
+    return 0;
 }
